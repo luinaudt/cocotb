@@ -69,7 +69,7 @@ endif
 
 GPI_EXTRA:=
 ifeq ($(TOPLEVEL_LANG),vhdl)
-    VSIM_ARGS += -foreign \"cocotb_init libfli.$(LIB_EXT)\"
+    $(error "VHDL fli is not supported by the intel version of modelsim"
 ifneq ($(VERILOG_SOURCES),)
     GPI_EXTRA = vpi 
 endif
