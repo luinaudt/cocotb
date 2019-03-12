@@ -39,7 +39,7 @@ Also used as regression test of cocotb capabilities
 
 import cocotb
 from cocotb.triggers import (Timer, Join, RisingEdge, FallingEdge, Edge,
-                             ReadOnly, ReadWrite, ClockCycles)
+                             ReadOnly, ReadWrite, ClockCycles, NextTimeStep)
 from cocotb.clock import Clock
 from cocotb.result import ReturnValue, TestFailure, TestError, TestSuccess
 from cocotb.utils import get_sim_time
@@ -740,6 +740,29 @@ def join_finished(dut):
 
 
 @cocotb.test()
+def consistent_join(dut):
+    """
+    Test that joining a coroutine returns the finished value
+    """
+    @cocotb.coroutine
+    def wait_for(clk, cycles):
+        rising_edge = RisingEdge(clk)
+        for _ in range(cycles):
+            yield rising_edge
+        raise ReturnValue(3)
+
+    cocotb.fork(Clock(dut.clk, 2000, 'ps').start())
+
+    short_wait = cocotb.fork(wait_for(dut.clk, 10))
+    long_wait = cocotb.fork(wait_for(dut.clk, 30))
+
+    yield wait_for(dut.clk, 20)
+    a = yield short_wait.join()
+    b = yield long_wait.join()
+    assert a == b == 3
+
+
+@cocotb.test()
 def test_kill_twice(dut):
     """
     Test that killing a coroutine that has already been killed does not crash
@@ -762,6 +785,58 @@ def test_join_identity(dut):
     yield Timer(1)
     clk_gen.kill()
 
+
+@cocotb.test()
+def test_edge_identity(dut):
+    """
+    Test that Edge triggers returns the same object each time
+    """
+
+    re = RisingEdge(dut.clk)
+    fe = FallingEdge(dut.clk)
+    e = Edge(dut.clk)
+
+    assert re is RisingEdge(dut.clk)
+    assert fe is FallingEdge(dut.clk)
+    assert e is Edge(dut.clk)
+
+    # check they are all unique
+    assert len({re, fe, e}) == 3
+    yield Timer(1)
+
+
+@cocotb.test()
+def test_singleton_isinstance(dut):
+    """
+    Test that the result of trigger expression have a predictable type
+    """
+    assert isinstance(RisingEdge(dut.clk), RisingEdge)
+    assert isinstance(FallingEdge(dut.clk), FallingEdge)
+    assert isinstance(Edge(dut.clk), Edge)
+    assert isinstance(NextTimeStep(), NextTimeStep)
+    assert isinstance(ReadOnly(), ReadOnly)
+    assert isinstance(ReadWrite(), ReadWrite)
+
+    yield Timer(1)
+
+
+@cocotb.test()
+def test_lessthan_raises_error(dut):
+    """
+    Test that trying to use <= as if it were a comparison produces an error
+    """
+    ret = dut.stream_in_data <= 0x12
+    try:
+        bool(ret)
+    except TypeError:
+        pass
+    else:
+        raise TestFailure(
+            "No exception was raised when confusing comparison with assignment"
+        )
+
+    # to make this a generator
+    if False: yield
 
 
 if sys.version_info[:2] >= (3, 3):
@@ -786,3 +861,18 @@ if sys.version_info[:2] >= (3, 3):
         if ret != 42:
             raise TestFailure("Return statement did not work")
     '''))
+
+
+@cocotb.test()
+def test_exceptions():
+    @cocotb.coroutine
+    def raise_soon():
+        yield Timer(10)
+        raise ValueError('It is soon now')
+    
+    try:
+        yield raise_soon()
+    except ValueError:
+        pass
+    else:
+        raise TestFailure("Exception was not raised")
