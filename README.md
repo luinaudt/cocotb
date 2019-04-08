@@ -16,7 +16,7 @@
 
     # Install pre-requisites (waveform viewer optional)
     sudo yum install -y iverilog python-devel gtkwave
-    
+
     # Checkout git repositories
     git clone https://github.com/potentialventures/cocotb.git
     
@@ -30,6 +30,13 @@
     # View the waveform
     gtkwave waveform.vcd
 
+## To use with centos7 and modelsim_ae on user repo:
+   #add version 3.4 of python
+   sudo yum install python34-libs
+
+   #install
+   cd cocotb
+   python34 setup.py install --user
 
 ## Tutorials and examples
 
