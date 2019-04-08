@@ -1,31 +1,31 @@
 #!/usr/bin/env python
 
-''' Copyright (c) 2013 Potential Ventures Ltd
-Copyright (c) 2013 SolarFlare Communications Inc
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of Potential Ventures Ltd,
-      SolarFlare Communications Inc nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL POTENTIAL VENTURES LTD BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. '''
+# Copyright (c) 2013 Potential Ventures Ltd
+# Copyright (c) 2013 SolarFlare Communications Inc
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Potential Ventures Ltd,
+#       SolarFlare Communications Inc nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL POTENTIAL VENTURES LTD BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import print_function
 from cocotb.utils import get_python_integer_types
@@ -64,23 +64,22 @@ def _clog2(val):
         exp += 1
 
 
-class BinaryRepresentation():
-    UNSIGNED         = 0  # noqa
-    SIGNED_MAGNITUDE = 1  # noqa
-    TWOS_COMPLEMENT  = 2  # noqa
+class BinaryRepresentation():  # noqa
+    UNSIGNED         = 0  #: Unsigned format
+    SIGNED_MAGNITUDE = 1  #: Sign and magnitude format
+    TWOS_COMPLEMENT  = 2  #: Two's complement format
 
 
 class BinaryValue(object):
     """Representation of values in binary format.
 
-    The underlying value can be set or accessed using three aliasing attributes
+    The underlying value can be set or accessed using these aliasing attributes:
 
-        - BinaryValue.integer is an integer
-        - BinaryValue.signed_integer is a signed integer
-        - BinaryValue.binstr is a string of "01xXzZ"
-        - BinaryValue.buff is a binary buffer of bytes
-
-        - BinaryValue.value is an integer *** deprecated ***
+        - :attr:`BinaryValue.integer` is an integer
+        - :attr:`BinaryValue.signed_integer` is a signed integer
+        - :attr:`BinaryValue.binstr` is a string of "01xXzZ"
+        - :attr:`BinaryValue.buff` is a binary buffer of bytes
+        - :attr:`BinaryValue.value` is an integer **deprecated**
 
     For example:
 
@@ -100,17 +99,17 @@ class BinaryValue(object):
     def __init__(self, value=None, n_bits=None, bigEndian=True,
                  binaryRepresentation=BinaryRepresentation.UNSIGNED,
                  bits=None):
-        """
-        Kwagrs:
-            value (string or int or long): value to assign to the bus
-
-            n_bits (int): Number of bits to use for the underlying binary
-                          representation
-
-            bigEndian (bool): Interpret the binary as big-endian when
-                                converting to/from a string buffer.
-
-            bits (int): Deprecated: Compatibility wrapper for n_bits
+        """Args:
+            value (str or int or long, optional): Value to assign to the bus.
+            n_bits (int, optional): Number of bits to use for the underlying
+                binary representation.
+            bigEndian (bool, optional): Interpret the binary as big-endian 
+                when converting to/from a string buffer.
+            binaryRepresentation (BinaryRepresentation): The representation 
+                of the binary value
+                (one of :any:`UNSIGNED`, :any:`SIGNED_MAGNITUDE`, :any:`TWOS_COMPLEMENT`).
+                Defaults to unsigned representation.
+            bits (int, optional): Deprecated: Compatibility wrapper for :attr:`n_bits`.
         """
         self._str = ""
         self.big_endian = bigEndian
@@ -144,12 +143,16 @@ class BinaryValue(object):
             self.assign(value)
 
     def assign(self, value):
-        """Decides how best to assign the value to the vector
+        """Decides how best to assign the value to the vector.
 
         We possibly try to be a bit too clever here by first of
         all trying to assign the raw string as a binstring, however
-        if the string contains any characters that aren't 0, 1, X or Z
-        then we interpret the string as a binary buffer...
+        if the string contains any characters that aren't 
+        ``0``, ``1``, ``X`` or ``Z``
+        then we interpret the string as a binary buffer.
+
+        Args:
+            value (str or int or long): The value to assign.
         """
         if isinstance(value, get_python_integer_types()):
             self.value = value
@@ -227,7 +230,7 @@ class BinaryValue(object):
             else:
                 rv = '0' * (self._n_bits - l) + x
         elif l > self._n_bits:
-            print("WARNING truncating value to match requested number of bits "
+            print("WARNING: truncating value to match requested number of bits "
                   "(%d -> %d)" % (l, self._n_bits))
             if self.big_endian:
                 rv = x[l - self._n_bits:]
@@ -236,7 +239,7 @@ class BinaryValue(object):
         return rv
 
     def _adjust_signed_mag(self, x):
-        """Pad/truncate the bit string to the correct length"""
+        """Pad/truncate the bit string to the correct length."""
         if self._n_bits is None:
             return x
         l = len(x)
@@ -248,7 +251,7 @@ class BinaryValue(object):
                 rv = '0' * (self._n_bits - 1 - l) + x[1:]
                 rv = x[0] + rv
         elif l > self._n_bits:
-            print("WARNING truncating value to match requested number of bits "
+            print("WARNING: truncating value to match requested number of bits "
                   "(%d -> %d)" % (l, self._n_bits))
             if self.big_endian:
                 rv = x[l - self._n_bits:]
@@ -268,7 +271,7 @@ class BinaryValue(object):
             else:
                 rv = x[0] * (self._n_bits - l) + x
         elif l > self._n_bits:
-            print("WARNING truncating value to match requested number of bits "
+            print("WARNING: truncating value to match requested number of bits "
                   "(%d -> %d)" % (l, self._n_bits))
             if self.big_endian:
                 rv = x[l - self._n_bits:]
@@ -279,11 +282,11 @@ class BinaryValue(object):
         return rv
 
     def get_value(self):
-        """value is an integer representation of the underlying vector"""
+        """Return the integer representation of the underlying vector."""
         return self._convert_from[self.binaryRepresentation](self._str)
 
     def get_value_signed(self):
-        """value is an signed integer representation of the underlying vector"""
+        """Return the signed integer representation of the underlying vector."""
         ival = int(resolve(self._str), 2)
         bits = len(self._str)
         signbit = (1 << (bits - 1))
@@ -295,19 +298,23 @@ class BinaryValue(object):
     def set_value(self, integer):
         self._str = self._convert_to[self.binaryRepresentation](integer)
 
+    @property
+    def is_resolvable(self):
+        """Does the value contain any ``X``'s?  Inquiring minds want to know."""
+        return not any(char in self._str for char in BinaryValue._resolve_to_error)
+
     value = property(get_value, set_value, None,
-                     "Integer access to the value *** deprecated ***")
+                     "Integer access to the value. **deprecated**")
     integer = property(get_value, set_value, None,
-                       "Integer access to the value")
+                       "The integer representation of the underlying vector.")
     signed_integer = property(get_value_signed, set_value, None,
-                              "Signed integer access to the value")
+                              "The signed integer representation of the underlying vector.")
 
     def get_buff(self):
-        """Attribute self.buff represents the value as a binary string buffer
+        """Attribute :attr:`buff` represents the value as a binary string buffer.
 
         >>> "0100000100101111".buff == "\x41\x2F"
         True
-
         """
         bits = resolve(self._str)
 
@@ -340,7 +347,7 @@ class BinaryValue(object):
         self._adjust()
 
     def _adjust(self):
-        """Pad/truncate the bit string to the correct length"""
+        """Pad/truncate the bit string to the correct length."""
         if self._n_bits is None:
             return
         l = len(self._str)
@@ -350,16 +357,16 @@ class BinaryValue(object):
             else:
                 self._str = "0" * (self._n_bits - l) + self._str
         elif l > self._n_bits:
-            print("WARNING truncating value to match requested number of bits "
+            print("WARNING: truncating value to match requested number of bits "
                   "(%d -> %d)" % (l, self._n_bits))
             self._str = self._str[l - self._n_bits:]
 
     buff = property(get_buff, set_buff, None,
-                    "Access to the value as a buffer")
+                    "Access to the value as a buffer.")
 
     def get_binstr(self):
-        """Attribute binstr is the binary representation stored as a string of
-        1s and 0s"""
+        """Attribute :attr:`binstr` is the binary representation stored as 
+        a string of ``1`` and ``0``."""
         return self._str
 
     def set_binstr(self, string):
@@ -371,14 +378,14 @@ class BinaryValue(object):
         self._adjust()
 
     binstr = property(get_binstr, set_binstr, None,
-                      "Access to the binary string")
+                      "Access to the binary string.")
 
     def _get_n_bits(self):
-        """The number of bits of the binary value"""
+        """The number of bits of the binary value."""
         return self._n_bits
 
     n_bits = property(_get_n_bits, None, None,
-                      "Access to the number of bits of the binary value")
+                      "Access to the number of bits of the binary value.")
 
     def hex(self):
         try:
@@ -399,7 +406,7 @@ class BinaryValue(object):
         return self.__nonzero__()
 
     def __nonzero__(self):
-        """Provide boolean testing of a binstr.
+        """Provide boolean testing of a :attr:`binstr`.
 
         >>> val = BinaryValue("0000")
         >>> if val: print("True")
@@ -445,12 +452,18 @@ class BinaryValue(object):
         self.integer = self.integer + int(other)
         return self
 
+    def __radd__(self, other):
+        return self.integer + other
+
     def __sub__(self, other):
         return self.integer - int(other)
 
     def __isub__(self, other):
         self.integer = self.integer - int(other)
         return self
+
+    def __rsub__(self, other):
+        return other - self.integer
 
     def __mul__(self, other):
         return self.integer * int(other)
@@ -459,12 +472,24 @@ class BinaryValue(object):
         self.integer = self.integer * int(other)
         return self
 
-    def __divmod__(self, other):
+    def __rmul__(self, other):
+        return self.integer * other
+
+    def __floordiv__(self, other):
         return self.integer // int(other)
 
-    def __idivmod__(self, other):
-        self.integer = self.integer // int(other)
+    def __ifloordiv__(self, other):
+        self.integer = self.__floordiv__(other)
         return self
+
+    def __rfloordiv__(self, other):
+        return other // self.integer
+
+    def __divmod__(self, other):
+        return (self.integer // other, self.integer % other)
+
+    def __rdivmod__(self, other):
+        return other // self.integer
 
     def __mod__(self, other):
         return self.integer % int(other)
@@ -472,6 +497,19 @@ class BinaryValue(object):
     def __imod__(self, other):
         self.integer = self.integer % int(other)
         return self
+
+    def __rmod__(self, other):
+        return other % self.integer
+
+    def __pow__(self, other, modulo):
+        return pow(self.integer, other, modulo)
+
+    def __ipow__(self, other, modulo):
+        self.integer = pow(self.integer, other, modulo)
+        return self
+
+    def __rpow__(self, other):
+        return pow(other, self.integer, modulo)
 
     def __lshift__(self, other):
         return int(self) << int(other)
@@ -481,6 +519,9 @@ class BinaryValue(object):
         self.binstr = self.binstr[other:] + self.binstr[:other]
         return self
 
+    def __rlshift__(self, other):
+        return other << self.integer
+
     def __rshift__(self, other):
         return int(self) >> int(other)
 
@@ -489,16 +530,77 @@ class BinaryValue(object):
         self.binstr = self.binstr[-other:] + self.binstr[:-other]
         return self
 
+    def __rrshift__(self, other):
+        return other >> self.integer
+
+    def __and__(self, other):
+        return self.integer & other
+
+    def __iand__(self, other):
+        self.integer &= other
+        return self
+
+    def __rand__(self, other):
+        return self.integer & other
+
+    def __xor__(self, other):
+        return self.integer ^ other
+
+    def __ixor__(self, other):
+        self.integer ^= other
+        return self
+
+    def __rxor__(self, other):
+        return self.__xor__(other)
+
+    def __or__(self, other):
+        return self.integer | other
+
+    def __ior__(self, other):
+        self.integer |= other
+        return self
+
+    def __ror__(self, other):
+        return self.__or__(other)
+
+    def __div__(self, other):
+        return self.integer / other
+
+    def __idiv__(self, other):
+        self.integer /= other
+        return self
+
+    def __rdiv__(self, other):
+        return other / self.integer
+
+    def __neg__(self, other):
+        return - self.integer
+
+    def __pos__(self):
+        return + self.integer
+
+    def __abs__(self):
+        return abs(self.integer)
+
     def __invert__(self):
         """Preserves X values"""
         return self._invert(self.binstr)
+
+    def __oct__(self):
+        return oct(self.integer)
+
+    def __hex__(self):
+        return hex(self.integer)
+
+    def __index__(self):
+        return self.integer
 
     def __len__(self):
         return len(self.binstr)
 
     def __getitem__(self, key):
-        ''' BinaryValue uses verilog/vhdl style slices as opposed to python
-        style'''
+        """BinaryValue uses Verilog/VHDL style slices as opposed to Python
+        style"""
         if isinstance(key, slice):
             first, second = key.start, key.stop
             if self.big_endian:
@@ -537,8 +639,7 @@ class BinaryValue(object):
         return rv
 
     def __setitem__(self, key, val):
-        ''' BinaryValue uses verilog/vhdl style slices as opposed to python
-        style'''
+        """BinaryValue uses Verilog/VHDL style slices as opposed to Python style."""
         if not isinstance(val, str) and not isinstance(val, get_python_integer_types()):
             raise TypeError('BinaryValue slices only accept string or integer values')
 
